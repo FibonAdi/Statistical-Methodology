@@ -1,0 +1,67 @@
+---
+title: "Workshop 2"
+author: "Adithya Kumar"
+date: "2024-12-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+```{r Inital Set-Up}
+sample <- c(1.09, -0.23, 0.79, 2.31, -0.81)
+inital_guess <- 0
+tol <- 1e-6
+```
+
+```{r Fisher-Method of Scoring}
+score <- function(y, theta){
+  l_prime <- 2*sum((y - theta)/(1+(y-theta)^2))
+  return(l_prime)
+}
+
+fisher_info <- function(y){
+  I = length(y)/2
+  return(I)
+}
+
+fisher <- function(y = sample, 
+                   theta_0 = inital_guess, 
+                   tolerance = tol){
+  epsilon <- 10
+  theta <- theta_0
+  while(epsilon > tolerance){
+    guess <- theta + score(y, theta)/fisher_info(y)
+    theta <- guess
+    print(theta)
+    epsilon <- abs(score(y, theta))
+    #print(epsilon)
+  }
+  return(theta)
+}
+```
+
+```{r log-likelyhood-plot}
+log_likelyhood <- function(y, theta){
+  n = length(y)
+  l <- numeric(length = length(theta))
+  for (i in seq_along(theta)){
+    l[i] <- -n*log(pi) - sum(log(1 + (y-theta[i])^2))
+  }
+  return(l)
+}
+
+theta_vals = seq(-5, 5, length.out = 10000)
+l <- log_likelyhood(sample, theta_vals)
+plot(theta_vals, l, type = "l", col = "blue", lwd = 2, 
+     main = "Plot of log-likelyhood vs theta", 
+     xlab = "theta", 
+     ylab = "log-likelyhood",
+     xlim = c(-10, 10), 
+     ylim = c(min(l), max(l)))
+grid()
+
+theta_vals[which.max(l)]
+```
